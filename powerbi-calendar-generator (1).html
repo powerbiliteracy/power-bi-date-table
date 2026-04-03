@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Calendar Table Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #0f4c75;
+            --accent-light: #3282b8;
+            --success: #00d9a3;
+            --warning: #ffa726;
+            --danger: #ef5350;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --border: #2d2d44;
+            --bg-card: #1e1e30;
+            --code-bg: #0d0d1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-light), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--accent-light), var(--success));
+            border-radius: 2px;
+        }
+
+        .settings-panel {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .settings-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .settings-panel::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 3px;
+        }
+
+        .settings-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-group input[type="date"],
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 3px rgba(50, 130, 184, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent-light);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 30px 0;
+        }
+
+        .subsection {
+            margin-top: 20px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+        }
+
+        .subsection h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--accent-light);
+            font-weight: 500;
+        }
+
+        .collapsible-section {
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--secondary);
+        }
+
+        .section-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--secondary);
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .section-header:hover {
+            background: var(--accent);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2rem;
+            color: var(--accent-light);
+        }
+
+        .section-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .section-counter {
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 20px;
+        }
+
+        .section-content.expanded {
+            max-height: 2000px;
+            padding: 20px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(50, 130, 184, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(50, 130, 184, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00b894, var(--success));
+            box-shadow: 0 4px 15px rgba(0, 217, 163, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(0, 217, 163, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .output-section {
+            animation-delay: 0.2s;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            position: relative;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .code-block::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .code-block::-webkit-scrollbar-track {
+            background: var(--secondary);
+        }
+
+        .code-block::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-light);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .info-box {
+            background: rgba(50, 130, 184, 0.1);
+            border-left: 4px solid var(--accent-light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+            }
+        }
+
+        .keyword-color {
+            color: #ff79c6;
+        }
+
+        .function-color {
+            color: #50fa7b;
+        }
+
+        .string-color {
+            color: #f1fa8c;
+        }
+
+        .comment-color {
+            color: #6272a4;
+        }
+
+        .number-color {
+            color: #bd93f9;
+        }
+
+        .saved-config-item {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .saved-config-item:hover {
+            background: var(--accent);
+            border-color: var(--accent-light);
+        }
+
+        .saved-config-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .saved-config-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .config-btn {
+            padding: 6px 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 500;
+        }
+
+        .config-btn:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .config-btn.delete {
+            background: var(--danger);
+        }
+
+        .config-btn.delete:hover {
+            background: #d32f2f;
+        }
+
+        .no-configs {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Power BI Calendar Generator</h1>
+            <p>Professional Date/Calendar Table Generator with Advanced Customization</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Settings Panel -->
+            <div class="card">
+                <h2>Configuration</h2>
+                <div class="settings-panel">
+                    <!-- Basic Settings -->
+                    <div class="form-group">
+                        <label>Table Name</label>
+                        <input type="text" id="tableName" value="Calendar">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date Range Source</label>
+                        <select id="dateSource" onchange="toggleDateSource()">
+                            <option value="dynamic">Dynamic (From Fact Table)</option>
+                            <option value="fixed">Fixed Dates</option>
+                        </select>
+                    </div>
+
+                    <div id="dynamicDateFields">
+                        <div class="form-group">
+                            <label>Fact Table Name</label>
+                            <input type="text" id="factTableName" value="Sales" placeholder="e.g., Sales, Orders">
+                        </div>
+                        <div class="form-group">
+                            <label>Date Column Name</label>
+                            <input type="text" id="dateColumnName" value="OrderDate" placeholder="e.g., OrderDate, TransactionDate">
+                        </div>
+                    </div>
+
+                    <div id="fixedDateFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Start Date</label>
+                            <input type="date" id="startDate" value="2020-01-01">
+                        </div>
+                        <div class="form-group">
+                            <label>End Date</label>
+                            <input type="date" id="endDate" value="2030-12-31">
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Date Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Date Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="date">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDateKey" checked data-section="date">
+                                <label for="includeDateKey">Date Key (Integer YYYYMMDD)</label>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px; font-style: italic;">
+                                Note: The base [Date] column is automatically included by CALENDAR()
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Year Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Year Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="year">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeYear" checked data-section="year">
+                                <label for="includeYear">Year</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeYearStart" checked data-section="year">
+                                <label for="includeYearStart">Year Start Date</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeYearEnd" checked data-section="year">
+                                <label for="includeYearEnd">Year End Date</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quarter Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Quarter Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="quarter">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeQuarter" checked data-section="quarter">
+                                <label for="includeQuarter">Quarter Number</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeQuarterLabel" checked data-section="quarter">
+                                <label for="includeQuarterLabel">Quarter Label (Q1, Q2, etc.)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeYearQuarter" checked data-section="quarter">
+                                <label for="includeYearQuarter">Year-Quarter (2024-Q1)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeQuarterStart" data-section="quarter">
+                                <label for="includeQuarterStart">Quarter Start Date</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeQuarterEnd" data-section="quarter">
+                                <label for="includeQuarterEnd">Quarter End Date</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Month Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Month Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="month">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonth" checked data-section="month">
+                                <label for="includeMonth">Month Number</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonthName" checked data-section="month">
+                                <label for="includeMonthName">Month Name</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonthShort" checked data-section="month">
+                                <label for="includeMonthShort">Month Short (Jan, Feb, etc.)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeYearMonth" checked data-section="month">
+                                <label for="includeYearMonth">Year-Month (2024-01)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonthStart" data-section="month">
+                                <label for="includeMonthStart">Month Start Date</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonthEnd" data-section="month">
+                                <label for="includeMonthEnd">Month End Date</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Week Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Week Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="week">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label>Week Start Day</label>
+                                <select id="weekStartDay">
+                                    <option value="0">Sunday</option>
+                                    <option value="1" selected>Monday</option>
+                                    <option value="6">Saturday</option>
+                                </select>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeWeekOfYear" checked data-section="week">
+                                <label for="includeWeekOfYear">Week of Year (ISO)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeWeekOfMonth" data-section="week">
+                                <label for="includeWeekOfMonth">Week of Month</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeWeekStart" data-section="week">
+                                <label for="includeWeekStart">Week Start Date</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeWeekEnd" data-section="week">
+                                <label for="includeWeekEnd">Week End Date</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Day Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Day Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="day">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDayOfWeek" checked data-section="day">
+                                <label for="includeDayOfWeek">Day of Week Number</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDayName" checked data-section="day">
+                                <label for="includeDayName">Day Name</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDayShort" checked data-section="day">
+                                <label for="includeDayShort">Day Short (Mon, Tue, etc.)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDayOfMonth" checked data-section="day">
+                                <label for="includeDayOfMonth">Day of Month</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDayOfYear" data-section="day">
+                                <label for="includeDayOfYear">Day of Year</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Logic Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Business Logic</span>
+                            </div>
+                            <span class="section-counter" data-section="business">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsWeekday" checked data-section="business">
+                                <label for="includeIsWeekday">Is Weekday</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsWeekend" checked data-section="business">
+                                <label for="includeIsWeekend">Is Weekend</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsMonthStart" data-section="business">
+                                <label for="includeIsMonthStart">Is Month Start</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsMonthEnd" data-section="business">
+                                <label for="includeIsMonthEnd">Is Month End</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsQuarterStart" data-section="business">
+                                <label for="includeIsQuarterStart">Is Quarter Start</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsQuarterEnd" data-section="business">
+                                <label for="includeIsQuarterEnd">Is Quarter End</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsYearStart" data-section="business">
+                                <label for="includeIsYearStart">Is Year Start</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsYearEnd" data-section="business">
+                                <label for="includeIsYearEnd">Is Year End</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fiscal Year Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Fiscal Year</span>
+                            </div>
+                            <span class="section-counter" data-section="fiscal">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeFiscalYear" data-section="fiscal">
+                                <label for="includeFiscalYear">Enable Fiscal Year</label>
+                            </div>
+                            <div class="form-group" id="fiscalMonthGroup" style="display: none;">
+                                <label>Fiscal Year Start Month</label>
+                                <select id="fiscalYearStartMonth">
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7" selected>July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Relative Dates Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Relative Date Flags</span>
+                            </div>
+                            <span class="section-counter" data-section="relative">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsToday" data-section="relative">
+                                <label for="includeIsToday">Is Today</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsCurrentMonth" data-section="relative">
+                                <label for="includeIsCurrentMonth">Is Current Month</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsCurrentQuarter" data-section="relative">
+                                <label for="includeIsCurrentQuarter">Is Current Quarter</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeIsCurrentYear" data-section="relative">
+                                <label for="includeIsCurrentYear">Is Current Year</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Offset Columns Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Offset Columns</span>
+                            </div>
+                            <span class="section-counter" data-section="offset">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeDaysFromToday" data-section="offset">
+                                <label for="includeDaysFromToday">Days From Today</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeMonthsFromToday" data-section="offset">
+                                <label for="includeMonthsFromToday">Months From Today</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Holidays Section -->
+                    <div class="collapsible-section">
+                        <div class="section-header" onclick="toggleSection(this)">
+                            <div class="section-title">
+                                <span class="section-icon">▶</span>
+                                <span>Holidays</span>
+                            </div>
+                            <span class="section-counter" data-section="holidays">0</span>
+                        </div>
+                        <div class="section-content">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeHolidays" data-section="holidays">
+                                <label for="includeHolidays">Include Holiday Columns</label>
+                            </div>
+                            <div class="form-group" id="holidayCountryGroup" style="display: none;">
+                                <label>Country/Region</label>
+                                <select id="holidayCountry">
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="IN">India</option>
+                                    <option value="BR">Brazil</option>
+                                    <option value="MX">Mexico</option>
+                                </select>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px; font-style: italic;">
+                                Note: Generates IsHoliday and HolidayName columns for major public holidays
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn" onclick="generateCode()">Generate DAX Code</button>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <!-- Saved Configurations -->
+                    <div style="margin-top: 20px;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--accent-light); font-weight: 500;">💾 Saved Configurations</h3>
+                        
+                        <div class="form-group">
+                            <label>Configuration Name</label>
+                            <input type="text" id="configName" placeholder="e.g., Sales Analysis, HR Reports">
+                        </div>
+
+                        <div class="btn-group" style="margin-bottom: 15px;">
+                            <button class="btn btn-success" onclick="saveConfiguration()" style="flex: 1;">Save Current Config</button>
+                        </div>
+
+                        <div id="savedConfigsList" style="margin-top: 15px;">
+                            <!-- Saved configs will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="card output-section">
+                <h2>Generated Code</h2>
+                
+                <div class="stats-grid" id="statsGrid" style="display: none;">
+                    <div class="stat-card">
+                        <span class="stat-value" id="totalRows">0</span>
+                        <span class="stat-label">Total Rows</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="totalYears">0</span>
+                        <span class="stat-label">Years</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value" id="totalColumns">0</span>
+                        <span class="stat-label">Columns</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: 500; margin-right: 10px;">Export Format:</label>
+                    <select id="exportFormat" onchange="changeExportFormat()" style="padding: 8px 12px; background: var(--secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-family: 'Outfit', sans-serif;">
+                        <option value="dax">DAX (Power BI Table)</option>
+                        <option value="mcode">M Code (Power Query)</option>
+                        <option value="sql">SQL Script</option>
+                    </select>
+                </div>
+
+                <div class="code-block" id="codeOutput">
+                    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+                    <pre id="codeContent">Click "Generate DAX Code" to create your calendar table...</pre>
+                    <textarea id="rawCode" style="display: none;"></textarea>
+                </div>
+
+                <div class="info-box">
+                    <strong>💡 Usage Instructions:</strong><br>
+                    1. Configure your settings (default uses dynamic date range from fact table)<br>
+                    2. Click "Generate DAX Code" to create your calendar table<br>
+                    3. Copy the generated DAX code using the "Copy Code" button<br>
+                    4. In Power BI Desktop, go to "Modeling" → "New Table"<br>
+                    5. Paste the code and press Enter<br>
+                    6. Mark as Date Table: Right-click table → "Mark as date table" → Select [Date] column<br>
+                    7. Create relationships with fact tables using the [Date] column<br><br>
+                    <strong>⚡ Best Practices Implemented:</strong><br>
+                    • Uses MINX/MAXX with ALL() for reliable date ranges<br>
+                    • DateKey as integer (not text) for better performance<br>
+                    • Proper VAR syntax for readability<br>
+                    • No trailing commas (DAX compliant)<br>
+                    • Simplified boolean expressions (no redundant IF statements)
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <strong>Included Features:</strong><br>
+                    <div id="featureTags" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between dynamic and fixed date source
+        function toggleDateSource() {
+            const source = document.getElementById('dateSource').value;
+            if (source === 'dynamic') {
+                document.getElementById('dynamicDateFields').style.display = 'block';
+                document.getElementById('fixedDateFields').style.display = 'none';
+            } else {
+                document.getElementById('dynamicDateFields').style.display = 'none';
+                document.getElementById('fixedDateFields').style.display = 'block';
+            }
+        }
+
+        // Toggle collapsible sections
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.section-icon');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+
+        // Update section counters
+        function updateSectionCounters() {
+            const sections = ['date', 'year', 'quarter', 'month', 'week', 'day', 'business', 'fiscal', 'relative', 'offset', 'holidays'];
+            
+            sections.forEach(section => {
+                const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-section="${section}"]`);
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                const counter = document.querySelector(`.section-counter[data-section="${section}"]`);
+                if (counter) {
+                    counter.textContent = checkedCount;
+                }
+            });
+        }
+
+        // Add event listeners to all checkboxes to update counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][data-section]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSectionCounters);
+            });
+            updateSectionCounters();
+        });
+
+        // Show/hide fiscal year options
+        document.getElementById('includeFiscalYear').addEventListener('change', function() {
+            document.getElementById('fiscalMonthGroup').style.display = this.checked ? 'block' : 'none';
+            updateSectionCounters();
+        });
+
+        // Show/hide holiday country options
+        document.getElementById('includeHolidays').addEventListener('change', function() {
+            document.getElementById('holidayCountryGroup').style.display = this.checked ? 'block' : 'none';
+            updateSectionCounters();
+        });
+
+        // Get holidays for country
+        function getHolidaysForCountry(countryCode) {
+            const holidays = {
+                'US': {
+                    countryName: 'United States',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)', // New Year
+                        'DATE(YEAR([Date]), 7, 4)', // Independence Day
+                        'DATE(YEAR([Date]), 12, 25)' // Christmas
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 7, 4), "Independence Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"'
+                    ]
+                },
+                'UK': {
+                    countryName: 'United Kingdom',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 12, 25)',
+                        'DATE(YEAR([Date]), 12, 26)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"',
+                        '        DATE(YEAR([Date]), 12, 26), "Boxing Day"'
+                    ]
+                },
+                'CA': {
+                    countryName: 'Canada',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 7, 1)',
+                        'DATE(YEAR([Date]), 12, 25)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 7, 1), "Canada Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"'
+                    ]
+                },
+                'AU': {
+                    countryName: 'Australia',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 1, 26)',
+                        'DATE(YEAR([Date]), 12, 25)',
+                        'DATE(YEAR([Date]), 12, 26)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 1, 26), "Australia Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"',
+                        '        DATE(YEAR([Date]), 12, 26), "Boxing Day"'
+                    ]
+                },
+                'DE': {
+                    countryName: 'Germany',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 10, 3)',
+                        'DATE(YEAR([Date]), 12, 25)',
+                        'DATE(YEAR([Date]), 12, 26)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 10, 3), "German Unity Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"',
+                        '        DATE(YEAR([Date]), 12, 26), "Second Christmas Day"'
+                    ]
+                },
+                'FR': {
+                    countryName: 'France',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 7, 14)',
+                        'DATE(YEAR([Date]), 12, 25)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 7, 14), "Bastille Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"'
+                    ]
+                },
+                'JP': {
+                    countryName: 'Japan',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 2, 11)',
+                        'DATE(YEAR([Date]), 5, 3)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 2, 11), "National Foundation Day"',
+                        '        DATE(YEAR([Date]), 5, 3), "Constitution Day"'
+                    ]
+                },
+                'IN': {
+                    countryName: 'India',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 26)',
+                        'DATE(YEAR([Date]), 8, 15)',
+                        'DATE(YEAR([Date]), 10, 2)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 26), "Republic Day"',
+                        '        DATE(YEAR([Date]), 8, 15), "Independence Day"',
+                        '        DATE(YEAR([Date]), 10, 2), "Gandhi Jayanti"'
+                    ]
+                },
+                'BR': {
+                    countryName: 'Brazil',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 9, 7)',
+                        'DATE(YEAR([Date]), 12, 25)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 9, 7), "Independence Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"'
+                    ]
+                },
+                'MX': {
+                    countryName: 'Mexico',
+                    dates: [
+                        'DATE(YEAR([Date]), 1, 1)',
+                        'DATE(YEAR([Date]), 9, 16)',
+                        'DATE(YEAR([Date]), 12, 25)'
+                    ],
+                    switches: [
+                        '        DATE(YEAR([Date]), 1, 1), "New Year\'s Day"',
+                        '        DATE(YEAR([Date]), 9, 16), "Independence Day"',
+                        '        DATE(YEAR([Date]), 12, 25), "Christmas Day"'
+                    ]
+                }
+            };
+            
+            return holidays[countryCode] || holidays['US'];
+        }
+
+        // Change export format
+        function changeExportFormat() {
+            const format = document.getElementById('exportFormat').value;
+            // Regenerate code in the new format
+            generateCode();
+        }
+
+        function generateCode() {
+            const config = {
+                tableName: document.getElementById('tableName').value || 'Calendar',
+                dateSource: document.getElementById('dateSource').value,
+                factTableName: document.getElementById('factTableName').value || 'Sales',
+                dateColumnName: document.getElementById('dateColumnName').value || 'OrderDate',
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                weekStartDay: parseInt(document.getElementById('weekStartDay').value),
+                fiscalYearStartMonth: parseInt(document.getElementById('fiscalYearStartMonth').value),
+                
+                // Date columns
+                includeDateKey: document.getElementById('includeDateKey').checked,
+                
+                // Year columns
+                includeYear: document.getElementById('includeYear').checked,
+                includeYearStart: document.getElementById('includeYearStart').checked,
+                includeYearEnd: document.getElementById('includeYearEnd').checked,
+                
+                // Quarter columns
+                includeQuarter: document.getElementById('includeQuarter').checked,
+                includeQuarterLabel: document.getElementById('includeQuarterLabel').checked,
+                includeYearQuarter: document.getElementById('includeYearQuarter').checked,
+                includeQuarterStart: document.getElementById('includeQuarterStart').checked,
+                includeQuarterEnd: document.getElementById('includeQuarterEnd').checked,
+                
+                // Month columns
+                includeMonth: document.getElementById('includeMonth').checked,
+                includeMonthName: document.getElementById('includeMonthName').checked,
+                includeMonthShort: document.getElementById('includeMonthShort').checked,
+                includeYearMonth: document.getElementById('includeYearMonth').checked,
+                includeMonthStart: document.getElementById('includeMonthStart').checked,
+                includeMonthEnd: document.getElementById('includeMonthEnd').checked,
+                
+                // Week columns
+                includeWeekOfYear: document.getElementById('includeWeekOfYear').checked,
+                includeWeekOfMonth: document.getElementById('includeWeekOfMonth').checked,
+                includeWeekStart: document.getElementById('includeWeekStart').checked,
+                includeWeekEnd: document.getElementById('includeWeekEnd').checked,
+                
+                // Day columns
+                includeDayOfWeek: document.getElementById('includeDayOfWeek').checked,
+                includeDayName: document.getElementById('includeDayName').checked,
+                includeDayShort: document.getElementById('includeDayShort').checked,
+                includeDayOfMonth: document.getElementById('includeDayOfMonth').checked,
+                includeDayOfYear: document.getElementById('includeDayOfYear').checked,
+                
+                // Business logic
+                includeIsWeekday: document.getElementById('includeIsWeekday').checked,
+                includeIsWeekend: document.getElementById('includeIsWeekend').checked,
+                includeIsMonthStart: document.getElementById('includeIsMonthStart').checked,
+                includeIsMonthEnd: document.getElementById('includeIsMonthEnd').checked,
+                includeIsQuarterStart: document.getElementById('includeIsQuarterStart').checked,
+                includeIsQuarterEnd: document.getElementById('includeIsQuarterEnd').checked,
+                includeIsYearStart: document.getElementById('includeIsYearStart').checked,
+                includeIsYearEnd: document.getElementById('includeIsYearEnd').checked,
+                
+                // Fiscal year
+                includeFiscalYear: document.getElementById('includeFiscalYear').checked,
+                
+                // Relative dates
+                includeIsToday: document.getElementById('includeIsToday').checked,
+                includeIsCurrentMonth: document.getElementById('includeIsCurrentMonth').checked,
+                includeIsCurrentQuarter: document.getElementById('includeIsCurrentQuarter').checked,
+                includeIsCurrentYear: document.getElementById('includeIsCurrentYear').checked,
+                
+                // Offset columns
+                includeDaysFromToday: document.getElementById('includeDaysFromToday').checked,
+                includeMonthsFromToday: document.getElementById('includeMonthsFromToday').checked,
+                
+                // Holidays
+                includeHolidays: document.getElementById('includeHolidays').checked,
+                holidayCountry: document.getElementById('holidayCountry').value
+            };
+
+            const daxCode = buildDAXCode(config);
+            
+            // Convert to selected format
+            const exportFormat = document.getElementById('exportFormat').value;
+            let finalCode;
+            
+            if (exportFormat === 'mcode') {
+                finalCode = convertToMCode(daxCode, config);
+            } else if (exportFormat === 'sql') {
+                finalCode = convertToSQL(daxCode, config);
+            } else {
+                finalCode = daxCode; // DAX is default
+            }
+            
+            // Store raw code for copying
+            document.getElementById('rawCode').value = finalCode;
+            
+            // Calculate statistics
+            let totalDays, totalYears;
+            if (config.dateSource === 'dynamic') {
+                totalDays = 'Dynamic';
+                totalYears = 'Dynamic';
+            } else {
+                const start = new Date(config.startDate);
+                const end = new Date(config.endDate);
+                totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                totalYears = end.getFullYear() - start.getFullYear() + 1;
+            }
+            const totalColumns = Object.values(config).filter(v => v === true).length + 1; // +1 for Date column
+            
+            // Update statistics
+            document.getElementById('totalRows').textContent = typeof totalDays === 'number' ? totalDays.toLocaleString() : totalDays;
+            document.getElementById('totalYears').textContent = totalYears;
+            document.getElementById('totalColumns').textContent = totalColumns;
+            document.getElementById('statsGrid').style.display = 'grid';
+            
+            // Update code output with syntax highlighting
+            document.getElementById('codeContent').innerHTML = highlightDAX(finalCode);
+            
+            // Update feature tags
+            updateFeatureTags(config);
+        }
+
+        function buildDAXCode(config) {
+            let vars = [];
+            let columns = [];
+            
+            // Header comment
+            let header = `// ====================================================================
+// Calendar/Date Table for Power BI
+// Generated: ${new Date().toLocaleDateString()}
+// ====================================================================
+
+`;
+
+            // Build the table definition with VARs
+            let tableDef = `${config.tableName} =\n`;
+            
+            // Date range variables - using MINX/MAXX with ALL() for reliable full-data range
+            if (config.dateSource === 'dynamic') {
+                vars.push(`VAR MinDate =  // Get earliest date from fact table`);
+                vars.push(`    MINX ( ALL ( '${config.factTableName}' ), '${config.factTableName}'[${config.dateColumnName}] )`);
+                vars.push(`VAR MaxDate =  // Get latest date from fact table`);
+                vars.push(`    MAXX ( ALL ( '${config.factTableName}' ), '${config.factTableName}'[${config.dateColumnName}] )`);
+            } else {
+                const startParts = config.startDate.split('-');
+                const endParts = config.endDate.split('-');
+                vars.push(`VAR MinDate = DATE ( ${startParts[0]}, ${parseInt(startParts[1])}, ${parseInt(startParts[2])} )  // Fixed start date`);
+                vars.push(`VAR MaxDate = DATE ( ${endParts[0]}, ${parseInt(endParts[1])}, ${parseInt(endParts[2])} )  // Fixed end date`);
+            }
+            
+            // Note: CALENDAR() already produces [Date] column, so we don't add it again
+            
+            // DateKey as INTEGER (not text)
+            if (config.includeDateKey) {
+                columns.push('    "DateKey", YEAR ( [Date] ) * 10000 + MONTH ( [Date] ) * 100 + DAY ( [Date] ),  // Converts date to integer: Year*10000 + Month*100 + Day → e.g., 20240315 for March 15, 2024');
+            }
+            
+            // Year columns
+            if (config.includeYear) {
+                columns.push('    "Year", YEAR ( [Date] ),  // Extracts the 4-digit year from the date → e.g., 2024');
+            }
+            if (config.includeYearStart) {
+                columns.push('    "YearStart", DATE ( YEAR ( [Date] ), 1, 1 ),  // Creates January 1st of the current year → e.g., 2024-01-01');
+            }
+            if (config.includeYearEnd) {
+                columns.push('    "YearEnd", DATE ( YEAR ( [Date] ), 12, 31 ),  // Creates December 31st of the current year → e.g., 2024-12-31');
+            }
+            
+            // Quarter columns
+            if (config.includeQuarter) {
+                columns.push('    "Quarter", QUARTER ( [Date] ),  // Returns quarter number (1-4) based on month → e.g., 1 for January-March');
+            }
+            if (config.includeQuarterLabel) {
+                columns.push('    "QuarterLabel", "Q" & QUARTER ( [Date] ),  // Concatenates "Q" with quarter number → e.g., Q1, Q2, Q3, Q4');
+            }
+            if (config.includeYearQuarter) {
+                columns.push('    "YearQuarter", FORMAT ( [Date], "YYYY" ) & "-Q" & QUARTER ( [Date] ),  // Combines year and quarter with dash separator → e.g., 2024-Q1');
+            }
+            if (config.includeQuarterStart) {
+                columns.push('    "QuarterStart", DATE ( YEAR ( [Date] ), ( QUARTER ( [Date] ) - 1 ) * 3 + 1, 1 ),  // Calculates first day of quarter: (Quarter-1)*3+1 gives starting month → e.g., 2024-04-01 for Q2');
+            }
+            if (config.includeQuarterEnd) {
+                columns.push('    "QuarterEnd", EOMONTH ( DATE ( YEAR ( [Date] ), QUARTER ( [Date] ) * 3, 1 ), 0 ),  // Gets last day of quarter: Quarter*3 gives ending month, EOMONTH finds last day → e.g., 2024-06-30 for Q2');
+            }
+            
+            // Month columns
+            if (config.includeMonth) {
+                columns.push('    "Month", MONTH ( [Date] ),  // Extracts month number (1-12) from the date → e.g., 3 for March');
+            }
+            if (config.includeMonthName) {
+                columns.push('    "MonthName", FORMAT ( [Date], "MMMM" ),  // Formats date to full month name using MMMM format code → e.g., January, February, March');
+            }
+            if (config.includeMonthShort) {
+                columns.push('    "MonthShort", FORMAT ( [Date], "MMM" ),  // Formats date to 3-letter month abbreviation using MMM format code → e.g., Jan, Feb, Mar');
+            }
+            if (config.includeYearMonth) {
+                columns.push('    "YearMonth", FORMAT ( [Date], "YYYY-MM" ),  // Formats date as year-month with dash separator (ISO 8601 format) → e.g., 2024-03');
+            }
+            if (config.includeMonthStart) {
+                columns.push('    "MonthStart", DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ),  // Constructs first day of month by setting day to 1 → e.g., 2024-03-01 for any date in March');
+            }
+            if (config.includeMonthEnd) {
+                columns.push('    "MonthEnd", EOMONTH ( [Date], 0 ),  // Gets end of month: 0 offset means current month → e.g., 2024-03-31 for any date in March');
+            }
+            
+            // Week columns (Note: WEEKNUM with 2 = weeks starting Monday, but NOT true ISO-8601)
+            if (config.includeWeekOfYear) {
+                columns.push('    "WeekOfYear", WEEKNUM ( [Date], 2 ),  // Calculates week number (1-53) with Monday as first day of week → e.g., 12 for a date in mid-March');
+            }
+            if (config.includeWeekOfMonth) {
+                columns.push('    "WeekOfMonth", WEEKNUM ( [Date], 2 ) - WEEKNUM ( DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ), 2 ) + 1,  // Subtracts week number of month start from current week, then adds 1 → e.g., 3 for third week of month');
+            }
+            if (config.includeWeekStart) {
+                const weekType = config.weekStartDay === 0 ? 1 : (config.weekStartDay === 1 ? 2 : 7);
+                columns.push(`    "WeekStart", [Date] - WEEKDAY ( [Date], ${weekType} ) + 1,  // Subtracts day-of-week position to get back to week start date → e.g., 2024-03-11 (Monday) for 2024-03-15 (Friday)`);
+            }
+            if (config.includeWeekEnd) {
+                const weekType = config.weekStartDay === 0 ? 1 : (config.weekStartDay === 1 ? 2 : 7);
+                columns.push(`    "WeekEnd", [Date] - WEEKDAY ( [Date], ${weekType} ) + 7,  // Gets to week start then adds 7 days to reach week end → e.g., 2024-03-17 (Sunday) for 2024-03-15 (Friday)`);
+            }
+            
+            // Day columns
+            if (config.includeDayOfWeek) {
+                columns.push('    "DayOfWeek", WEEKDAY ( [Date], 2 ),  // Returns day of week (1=Monday, 7=Sunday) using ISO standard → e.g., 5 for Friday');
+            }
+            if (config.includeDayName) {
+                columns.push('    "DayName", FORMAT ( [Date], "DDDD" ),  // Formats date to full day name using DDDD format code → e.g., Monday, Tuesday, Wednesday');
+            }
+            if (config.includeDayShort) {
+                columns.push('    "DayShort", FORMAT ( [Date], "DDD" ),  // Formats date to 3-letter day abbreviation using DDD format code → e.g., Mon, Tue, Wed');
+            }
+            if (config.includeDayOfMonth) {
+                columns.push('    "DayOfMonth", DAY ( [Date] ),  // Extracts day number (1-31) from the date → e.g., 15 for the 15th day of any month');
+            }
+            if (config.includeDayOfYear) {
+                columns.push('    "DayOfYear", DATEDIFF ( DATE ( YEAR ( [Date] ), 1, 1 ), [Date], DAY ) + 1,  // Counts days from Jan 1st to current date, adds 1 to make Jan 1st = day 1 → e.g., 75 for March 15th (in non-leap year)');
+            }
+            
+            // Business logic - simplified boolean expressions (no IF needed)
+            if (config.includeIsWeekday) {
+                columns.push('    "IsWeekday", WEEKDAY ( [Date], 2 ) <= 5,  // TRUE for Monday-Friday: Checks if day number is 5 or less → e.g., TRUE for Monday (1) through Friday (5)');
+            }
+            if (config.includeIsWeekend) {
+                columns.push('    "IsWeekend", WEEKDAY ( [Date], 2 ) > 5,  // TRUE for Saturday-Sunday: Checks if day number is greater than 5 → e.g., TRUE for Saturday (6) and Sunday (7)');
+            }
+            if (config.includeIsMonthStart) {
+                columns.push('    "IsMonthStart", DAY ( [Date] ) = 1,  // TRUE if first day of month: Checks if day equals 1 → e.g., TRUE for 2024-03-01, FALSE for 2024-03-15');
+            }
+            if (config.includeIsMonthEnd) {
+                columns.push('    "IsMonthEnd", [Date] = EOMONTH ( [Date], 0 ),  // TRUE if last day of month: Compares date with end-of-month date → e.g., TRUE for 2024-03-31, FALSE for 2024-03-15');
+            }
+            if (config.includeIsQuarterStart) {
+                columns.push('    "IsQuarterStart", MONTH ( [Date] ) IN { 1, 4, 7, 10 } && DAY ( [Date] ) = 1,  // TRUE if first day of quarter: Checks if month is Jan/Apr/Jul/Oct AND day is 1 → e.g., TRUE for 2024-04-01, FALSE for 2024-04-15');
+            }
+            if (config.includeIsQuarterEnd) {
+                columns.push('    "IsQuarterEnd", MONTH ( [Date] ) IN { 3, 6, 9, 12 } && [Date] = EOMONTH ( [Date], 0 ),  // TRUE if last day of quarter: Checks if month is Mar/Jun/Sep/Dec AND is last day of month → e.g., TRUE for 2024-06-30, FALSE for 2024-06-15');
+            }
+            if (config.includeIsYearStart) {
+                columns.push('    "IsYearStart", MONTH ( [Date] ) = 1 && DAY ( [Date] ) = 1,  // TRUE if January 1st: Checks if month is 1 AND day is 1 → e.g., TRUE for 2024-01-01, FALSE for all other dates');
+            }
+            if (config.includeIsYearEnd) {
+                columns.push('    "IsYearEnd", MONTH ( [Date] ) = 12 && DAY ( [Date] ) = 31,  // TRUE if December 31st: Checks if month is 12 AND day is 31 → e.g., TRUE for 2024-12-31, FALSE for all other dates');
+            }
+            
+            // Fiscal year columns
+            if (config.includeFiscalYear) {
+                const fiscalMonth = config.fiscalYearStartMonth;
+                columns.push(`    "FiscalYear", IF ( MONTH ( [Date] ) >= ${fiscalMonth}, YEAR ( [Date] ) + 1, YEAR ( [Date] ) ),  // If current month >= fiscal start month, use next year, otherwise current year → e.g., if fiscal year starts July: 2024-08-15 = FY2025, 2024-05-15 = FY2024`);
+                columns.push(`    "FiscalQuarter", SWITCH (\n        TRUE (),\n        MONTH ( [Date] ) >= ${fiscalMonth} && MONTH ( [Date] ) < ${(fiscalMonth + 3) % 12 || 12}, 1,\n        MONTH ( [Date] ) >= ${(fiscalMonth + 3) % 12 || 12} && MONTH ( [Date] ) < ${(fiscalMonth + 6) % 12 || 12}, 2,\n        MONTH ( [Date] ) >= ${(fiscalMonth + 6) % 12 || 12} && MONTH ( [Date] ) < ${(fiscalMonth + 9) % 12 || 12}, 3,\n        4\n    ),  // Determines fiscal quarter (1-4) by checking which 3-month period month falls into → e.g., if FY starts July: August=FQ1, November=FQ2`);
+                columns.push(`    "FiscalMonth", MOD ( MONTH ( [Date] ) - ${fiscalMonth} + 12, 12 ) + 1,  // Calculates fiscal month by offsetting from fiscal year start, MOD handles year wrap, +1 makes it 1-12 → e.g., if FY starts July: August=FM1, September=FM2`);
+            }
+            
+            // Relative dates
+            if (config.includeIsToday) {
+                columns.push('    "IsToday", [Date] = TODAY (),  // TRUE if current date: Compares date with today\'s date → e.g., TRUE only for today\'s date');
+            }
+            if (config.includeIsCurrentMonth) {
+                columns.push('    "IsCurrentMonth", YEAR ( [Date] ) = YEAR ( TODAY () ) && MONTH ( [Date] ) = MONTH ( TODAY () ),  // TRUE if current month: Checks if both year and month match today → e.g., if today is 2024-03-15, TRUE for any date in March 2024');
+            }
+            if (config.includeIsCurrentQuarter) {
+                columns.push('    "IsCurrentQuarter", YEAR ( [Date] ) = YEAR ( TODAY () ) && QUARTER ( [Date] ) = QUARTER ( TODAY () ),  // TRUE if current quarter: Checks if both year and quarter match today → e.g., if today is 2024-03-15 (Q1), TRUE for any date in Q1 2024');
+            }
+            if (config.includeIsCurrentYear) {
+                columns.push('    "IsCurrentYear", YEAR ( [Date] ) = YEAR ( TODAY () ),  // TRUE if current year: Checks if year matches today\'s year → e.g., if today is 2024-03-15, TRUE for any date in 2024');
+            }
+            
+            // Offset columns
+            if (config.includeDaysFromToday) {
+                columns.push('    "DaysFromToday", DATEDIFF ( TODAY (), [Date], DAY ),  // Calculates day difference: negative=past dates, positive=future dates, 0=today → e.g., if today is 2024-03-15: 2024-03-10=-5, 2024-03-15=0, 2024-03-20=5');
+            }
+            if (config.includeMonthsFromToday) {
+                columns.push('    "MonthsFromToday", DATEDIFF ( TODAY (), [Date], MONTH )  // Calculates month difference: negative=past months, positive=future months, 0=current month → e.g., if today is 2024-03-15: 2024-01-15=-2, 2024-03-15=0, 2024-05-15=2');
+            }
+            
+            // Holidays
+            if (config.includeHolidays) {
+                const holidays = getHolidaysForCountry(config.holidayCountry);
+                columns.push(`    "IsHoliday", [Date] IN { ${holidays.dates.join(', ')} },  // TRUE if date is a public holiday for ${holidays.countryName}`);
+                columns.push(`    "HolidayName", SWITCH (\n        [Date],\n${holidays.switches.join(',\n')},\n        BLANK ()\n    )  // Returns holiday name if date is a holiday, otherwise BLANK`);
+            }
+            
+            // Build final code - NO TRAILING COMMA
+            const daxCode = header + tableDef + vars.join('\n') + '\nRETURN\n    ADDCOLUMNS (\n        CALENDAR ( MinDate, MaxDate ),\n' + columns.join(',\n') + '\n    )';
+            
+            return daxCode;
+        }
+
+        function convertToMCode(daxCode, config) {
+            // Convert DAX to Power Query M code
+            let mCode = `// ====================================================================
+// Calendar/Date Table for Power Query (M Code)
+// Generated: ${new Date().toLocaleDateString()}
+// ====================================================================
+
+let
+    // Define date range
+    StartDate = `;
+            
+            if (config.dateSource === 'dynamic') {
+                mCode += `List.Min(${config.factTableName}[${config.dateColumnName}]),
+    EndDate = List.Max(${config.factTableName}[${config.dateColumnName}]),`;
+            } else {
+                mCode += `#date(${config.startDate.split('-')[0]}, ${parseInt(config.startDate.split('-')[1])}, ${parseInt(config.startDate.split('-')[2])}),
+    EndDate = #date(${config.endDate.split('-')[0]}, ${parseInt(config.endDate.split('-')[1])}, ${parseInt(config.endDate.split('-')[2])}),`;
+            }
+            
+            mCode += `
+    
+    // Generate list of dates
+    DayCount = Duration.Days(EndDate - StartDate) + 1,
+    DateList = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
+    
+    // Convert to table
+    TableFromList = Table.FromList(DateList, Splitter.SplitByNothing(), {"Date"}),
+    ChangedType = Table.TransformColumnTypes(TableFromList, {{"Date", type date}}),
+    
+    // Add columns
+    AddedColumns = Table.AddColumn(ChangedType, "Year", each Date.Year([Date]), Int64.Type)`;
+            
+            if (config.includeMonth) {
+                mCode += `,
+    AddMonth = Table.AddColumn(AddedColumns, "Month", each Date.Month([Date]), Int64.Type)`;
+            }
+            
+            if (config.includeMonthName) {
+                mCode += `,
+    AddMonthName = Table.AddColumn(AddedColumns, "MonthName", each Date.MonthName([Date]), type text)`;
+            }
+            
+            if (config.includeDayOfWeek) {
+                mCode += `,
+    AddDayOfWeek = Table.AddColumn(AddedColumns, "DayOfWeek", each Date.DayOfWeek([Date], Day.Monday) + 1, Int64.Type)`;
+            }
+            
+            if (config.includeDayName) {
+                mCode += `,
+    AddDayName = Table.AddColumn(AddedColumns, "DayName", each Date.DayOfWeekName([Date]), type text)`;
+            }
+            
+            mCode += `
+in
+    AddedColumns`;
+            
+            return mCode;
+        }
+
+        function convertToSQL(daxCode, config) {
+            // Convert to SQL script
+            let sql = `-- ====================================================================
+-- Calendar/Date Table for SQL
+-- Generated: ${new Date().toLocaleDateString()}
+-- ====================================================================
+
+`;
+            
+            if (config.dateSource === 'dynamic') {
+                sql += `-- Dynamic date range from fact table
+DECLARE @StartDate DATE = (SELECT MIN(${config.dateColumnName}) FROM ${config.factTableName});
+DECLARE @EndDate DATE = (SELECT MAX(${config.dateColumnName}) FROM ${config.factTableName});
+`;
+            } else {
+                sql += `-- Fixed date range
+DECLARE @StartDate DATE = '${config.startDate}';
+DECLARE @EndDate DATE = '${config.endDate}';
+`;
+            }
+            
+            sql += `
+-- Generate calendar table using recursive CTE
+WITH DateSequence AS (
+    SELECT @StartDate AS [Date]
+    UNION ALL
+    SELECT DATEADD(DAY, 1, [Date])
+    FROM DateSequence
+    WHERE DATEADD(DAY, 1, [Date]) <= @EndDate
+)
+SELECT
+    [Date],`;
+            
+            if (config.includeDateKey) {
+                sql += `
+    CAST(FORMAT([Date], 'yyyyMMdd') AS INT) AS DateKey,`;
+            }
+            
+            if (config.includeYear) {
+                sql += `
+    YEAR([Date]) AS [Year],`;
+            }
+            
+            if (config.includeQuarter) {
+                sql += `
+    DATEPART(QUARTER, [Date]) AS Quarter,`;
+            }
+            
+            if (config.includeMonth) {
+                sql += `
+    MONTH([Date]) AS [Month],`;
+            }
+            
+            if (config.includeMonthName) {
+                sql += `
+    DATENAME(MONTH, [Date]) AS MonthName,`;
+            }
+            
+            if (config.includeDayOfWeek) {
+                sql += `
+    DATEPART(WEEKDAY, [Date]) AS DayOfWeek,`;
+            }
+            
+            if (config.includeDayName) {
+                sql += `
+    DATENAME(WEEKDAY, [Date]) AS DayName,`;
+            }
+            
+            if (config.includeDayOfMonth) {
+                sql += `
+    DAY([Date]) AS DayOfMonth,`;
+            }
+            
+            if (config.includeIsWeekday) {
+                sql += `
+    CASE WHEN DATEPART(WEEKDAY, [Date]) IN (1, 7) THEN 0 ELSE 1 END AS IsWeekday,`;
+            }
+            
+            // Remove trailing comma
+            sql = sql.replace(/,\s*$/, '');
+            
+            sql += `
+FROM DateSequence
+OPTION (MAXRECURSION 0);
+
+-- Optional: Create permanent table
+-- SELECT * INTO dbo.${config.tableName} FROM above query;`;
+            
+            return sql;
+        }
+
+        function highlightDAX(code) {
+            // Escape HTML first to prevent any injection
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+            
+            // Syntax highlighting for DAX - only for display
+            return code
+                .split('\n')
+                .map(line => {
+                    // Check if line has a comment
+                    if (line.includes('//')) {
+                        const commentIndex = line.indexOf('//');
+                        const codePart = line.substring(0, commentIndex);
+                        const commentPart = line.substring(commentIndex);
+                        
+                        // Escape both parts
+                        let escapedCode = escapeHtml(codePart);
+                        let escapedComment = escapeHtml(commentPart);
+                        
+                        // Apply syntax highlighting to code part only
+                        escapedCode = escapedCode
+                            .replace(/\b(VAR|RETURN|CALENDAR|ADDCOLUMNS|MINX|MAXX|ALL|DATE|YEAR|MONTH|DAY|QUARTER|FORMAT|WEEKNUM|WEEKDAY|EOMONTH|DATEDIFF|TODAY|IF|SWITCH|TRUE|FALSE|MOD|IN)\b/g, '<span class="keyword-color">$1</span>')
+                            .replace(/\b(\d+)\b/g, '<span class="number-color">$1</span>')
+                            .replace(/&quot;([^&]*)&quot;/g, '<span class="string-color">&quot;$1&quot;</span>');
+                        
+                        // Apply green color to comment
+                        return escapedCode + '<span class="comment-color">' + escapedComment + '</span>';
+                    } else {
+                        // No comment - just highlight code
+                        let escaped = escapeHtml(line);
+                        return escaped
+                            .replace(/\b(VAR|RETURN|CALENDAR|ADDCOLUMNS|MINX|MAXX|ALL|DATE|YEAR|MONTH|DAY|QUARTER|FORMAT|WEEKNUM|WEEKDAY|EOMONTH|DATEDIFF|TODAY|IF|SWITCH|TRUE|FALSE|MOD|IN)\b/g, '<span class="keyword-color">$1</span>')
+                            .replace(/\b(\d+)\b/g, '<span class="number-color">$1</span>')
+                            .replace(/&quot;([^&]*)&quot;/g, '<span class="string-color">&quot;$1&quot;</span>');
+                    }
+                })
+                .join('\n');
+        }
+
+        function copyCode() {
+            let rawCode = document.getElementById('rawCode').value;
+            
+            // Fallback: if rawCode is empty, regenerate
+            if (!rawCode || rawCode.trim() === '') {
+                console.warn('Raw code was empty, regenerating...');
+                generateCode();
+                rawCode = document.getElementById('rawCode').value;
+            }
+            
+            navigator.clipboard.writeText(rawCode).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied! ✓';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function updateFeatureTags(config) {
+            const features = [];
+            
+            if (config.includeYear) features.push('Year');
+            if (config.includeQuarter) features.push('Quarter');
+            if (config.includeMonth) features.push('Month');
+            if (config.includeWeekOfYear) features.push('Week');
+            if (config.includeDayName) features.push('Day Names');
+            if (config.includeIsWeekday) features.push('Weekday/Weekend');
+            if (config.includeFiscalYear) features.push('Fiscal Year');
+            if (config.includeIsToday) features.push('Relative Dates');
+            if (config.includeDaysFromToday) features.push('Date Offsets');
+            
+            const tagsHtml = features.map(f => `<span class="tag">${f}</span>`).join('');
+            document.getElementById('featureTags').innerHTML = tagsHtml;
+        }
+
+        // Generate initial code on page load
+        window.addEventListener('load', () => {
+            generateCode();
+            loadSavedConfigurations();
+        });
+
+        // Save configuration
+        function saveConfiguration() {
+            const configName = document.getElementById('configName').value.trim();
+            
+            if (!configName) {
+                alert('Please enter a name for this configuration');
+                return;
+            }
+
+            // Get current configuration
+            const config = getCurrentConfiguration();
+            
+            // Get existing configs from localStorage
+            let savedConfigs = JSON.parse(localStorage.getItem('calendarConfigs') || '{}');
+            
+            // Save with timestamp
+            savedConfigs[configName] = {
+                ...config,
+                savedAt: new Date().toISOString(),
+                savedAtDisplay: new Date().toLocaleString()
+            };
+            
+            localStorage.setItem('calendarConfigs', JSON.stringify(savedConfigs));
+            
+            // Clear input
+            document.getElementById('configName').value = '';
+            
+            // Refresh list
+            loadSavedConfigurations();
+            
+            // Show success message
+            alert(`Configuration "${configName}" saved successfully!`);
+        }
+
+        // Get current configuration from form
+        function getCurrentConfiguration() {
+            return {
+                tableName: document.getElementById('tableName').value,
+                dateSource: document.getElementById('dateSource').value,
+                factTableName: document.getElementById('factTableName').value,
+                dateColumnName: document.getElementById('dateColumnName').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                weekStartDay: document.getElementById('weekStartDay').value,
+                fiscalYearStartMonth: document.getElementById('fiscalYearStartMonth').value,
+                holidayCountry: document.getElementById('holidayCountry').value,
+                
+                // Checkboxes
+                includeDateKey: document.getElementById('includeDateKey').checked,
+                includeYear: document.getElementById('includeYear').checked,
+                includeYearStart: document.getElementById('includeYearStart').checked,
+                includeYearEnd: document.getElementById('includeYearEnd').checked,
+                includeQuarter: document.getElementById('includeQuarter').checked,
+                includeQuarterLabel: document.getElementById('includeQuarterLabel').checked,
+                includeYearQuarter: document.getElementById('includeYearQuarter').checked,
+                includeQuarterStart: document.getElementById('includeQuarterStart').checked,
+                includeQuarterEnd: document.getElementById('includeQuarterEnd').checked,
+                includeMonth: document.getElementById('includeMonth').checked,
+                includeMonthName: document.getElementById('includeMonthName').checked,
+                includeMonthShort: document.getElementById('includeMonthShort').checked,
+                includeYearMonth: document.getElementById('includeYearMonth').checked,
+                includeMonthStart: document.getElementById('includeMonthStart').checked,
+                includeMonthEnd: document.getElementById('includeMonthEnd').checked,
+                includeWeekOfYear: document.getElementById('includeWeekOfYear').checked,
+                includeWeekOfMonth: document.getElementById('includeWeekOfMonth').checked,
+                includeWeekStart: document.getElementById('includeWeekStart').checked,
+                includeWeekEnd: document.getElementById('includeWeekEnd').checked,
+                includeDayOfWeek: document.getElementById('includeDayOfWeek').checked,
+                includeDayName: document.getElementById('includeDayName').checked,
+                includeDayShort: document.getElementById('includeDayShort').checked,
+                includeDayOfMonth: document.getElementById('includeDayOfMonth').checked,
+                includeDayOfYear: document.getElementById('includeDayOfYear').checked,
+                includeIsWeekday: document.getElementById('includeIsWeekday').checked,
+                includeIsWeekend: document.getElementById('includeIsWeekend').checked,
+                includeIsMonthStart: document.getElementById('includeIsMonthStart').checked,
+                includeIsMonthEnd: document.getElementById('includeIsMonthEnd').checked,
+                includeIsQuarterStart: document.getElementById('includeIsQuarterStart').checked,
+                includeIsQuarterEnd: document.getElementById('includeIsQuarterEnd').checked,
+                includeIsYearStart: document.getElementById('includeIsYearStart').checked,
+                includeIsYearEnd: document.getElementById('includeIsYearEnd').checked,
+                includeFiscalYear: document.getElementById('includeFiscalYear').checked,
+                includeIsToday: document.getElementById('includeIsToday').checked,
+                includeIsCurrentMonth: document.getElementById('includeIsCurrentMonth').checked,
+                includeIsCurrentQuarter: document.getElementById('includeIsCurrentQuarter').checked,
+                includeIsCurrentYear: document.getElementById('includeIsCurrentYear').checked,
+                includeDaysFromToday: document.getElementById('includeDaysFromToday').checked,
+                includeMonthsFromToday: document.getElementById('includeMonthsFromToday').checked,
+                includeHolidays: document.getElementById('includeHolidays').checked
+            };
+        }
+
+        // Load configuration into form
+        function loadConfiguration(configName) {
+            const savedConfigs = JSON.parse(localStorage.getItem('calendarConfigs') || '{}');
+            const config = savedConfigs[configName];
+            
+            if (!config) {
+                alert('Configuration not found');
+                return;
+            }
+
+            // Set text inputs
+            document.getElementById('tableName').value = config.tableName || 'Calendar';
+            document.getElementById('dateSource').value = config.dateSource || 'dynamic';
+            document.getElementById('factTableName').value = config.factTableName || 'Sales';
+            document.getElementById('dateColumnName').value = config.dateColumnName || 'OrderDate';
+            document.getElementById('startDate').value = config.startDate || '2020-01-01';
+            document.getElementById('endDate').value = config.endDate || '2030-12-31';
+            document.getElementById('weekStartDay').value = config.weekStartDay || '1';
+            document.getElementById('fiscalYearStartMonth').value = config.fiscalYearStartMonth || '7';
+            document.getElementById('holidayCountry').value = config.holidayCountry || 'US';
+            
+            // Set checkboxes
+            document.getElementById('includeDateKey').checked = config.includeDateKey !== false;
+            document.getElementById('includeYear').checked = config.includeYear !== false;
+            document.getElementById('includeYearStart').checked = config.includeYearStart !== false;
+            document.getElementById('includeYearEnd').checked = config.includeYearEnd !== false;
+            document.getElementById('includeQuarter').checked = config.includeQuarter !== false;
+            document.getElementById('includeQuarterLabel').checked = config.includeQuarterLabel !== false;
+            document.getElementById('includeYearQuarter').checked = config.includeYearQuarter !== false;
+            document.getElementById('includeQuarterStart').checked = config.includeQuarterStart || false;
+            document.getElementById('includeQuarterEnd').checked = config.includeQuarterEnd || false;
+            document.getElementById('includeMonth').checked = config.includeMonth !== false;
+            document.getElementById('includeMonthName').checked = config.includeMonthName !== false;
+            document.getElementById('includeMonthShort').checked = config.includeMonthShort !== false;
+            document.getElementById('includeYearMonth').checked = config.includeYearMonth !== false;
+            document.getElementById('includeMonthStart').checked = config.includeMonthStart || false;
+            document.getElementById('includeMonthEnd').checked = config.includeMonthEnd || false;
+            document.getElementById('includeWeekOfYear').checked = config.includeWeekOfYear !== false;
+            document.getElementById('includeWeekOfMonth').checked = config.includeWeekOfMonth || false;
+            document.getElementById('includeWeekStart').checked = config.includeWeekStart || false;
+            document.getElementById('includeWeekEnd').checked = config.includeWeekEnd || false;
+            document.getElementById('includeDayOfWeek').checked = config.includeDayOfWeek !== false;
+            document.getElementById('includeDayName').checked = config.includeDayName !== false;
+            document.getElementById('includeDayShort').checked = config.includeDayShort !== false;
+            document.getElementById('includeDayOfMonth').checked = config.includeDayOfMonth !== false;
+            document.getElementById('includeDayOfYear').checked = config.includeDayOfYear || false;
+            document.getElementById('includeIsWeekday').checked = config.includeIsWeekday !== false;
+            document.getElementById('includeIsWeekend').checked = config.includeIsWeekend !== false;
+            document.getElementById('includeIsMonthStart').checked = config.includeIsMonthStart || false;
+            document.getElementById('includeIsMonthEnd').checked = config.includeIsMonthEnd || false;
+            document.getElementById('includeIsQuarterStart').checked = config.includeIsQuarterStart || false;
+            document.getElementById('includeIsQuarterEnd').checked = config.includeIsQuarterEnd || false;
+            document.getElementById('includeIsYearStart').checked = config.includeIsYearStart || false;
+            document.getElementById('includeIsYearEnd').checked = config.includeIsYearEnd || false;
+            document.getElementById('includeFiscalYear').checked = config.includeFiscalYear || false;
+            document.getElementById('includeIsToday').checked = config.includeIsToday || false;
+            document.getElementById('includeIsCurrentMonth').checked = config.includeIsCurrentMonth || false;
+            document.getElementById('includeIsCurrentQuarter').checked = config.includeIsCurrentQuarter || false;
+            document.getElementById('includeIsCurrentYear').checked = config.includeIsCurrentYear || false;
+            document.getElementById('includeDaysFromToday').checked = config.includeDaysFromToday || false;
+            document.getElementById('includeMonthsFromToday').checked = config.includeMonthsFromToday || false;
+            document.getElementById('includeHolidays').checked = config.includeHolidays || false;
+            
+            // Trigger visibility updates
+            toggleDateSource();
+            document.getElementById('includeFiscalYear').dispatchEvent(new Event('change'));
+            document.getElementById('includeHolidays').dispatchEvent(new Event('change'));
+            
+            // Update counters
+            updateSectionCounters();
+            
+            // Generate code with loaded config
+            generateCode();
+            
+            alert(`Configuration "${configName}" loaded successfully!`);
+        }
+
+        // Delete configuration
+        function deleteConfiguration(configName) {
+            if (!confirm(`Are you sure you want to delete "${configName}"?`)) {
+                return;
+            }
+
+            let savedConfigs = JSON.parse(localStorage.getItem('calendarConfigs') || '{}');
+            delete savedConfigs[configName];
+            localStorage.setItem('calendarConfigs', JSON.stringify(savedConfigs));
+            
+            loadSavedConfigurations();
+            alert(`Configuration "${configName}" deleted successfully!`);
+        }
+
+        // Load and display saved configurations
+        function loadSavedConfigurations() {
+            const savedConfigs = JSON.parse(localStorage.getItem('calendarConfigs') || '{}');
+            const container = document.getElementById('savedConfigsList');
+            
+            if (Object.keys(savedConfigs).length === 0) {
+                container.innerHTML = '<div class="no-configs">No saved configurations yet</div>';
+                return;
+            }
+
+            let html = '';
+            for (const [name, config] of Object.entries(savedConfigs)) {
+                // Count enabled features
+                const enabledCount = Object.values(config).filter(v => v === true).length;
+                
+                html += `
+                    <div class="saved-config-item">
+                        <div>
+                            <div class="saved-config-name">${name}</div>
+                            <div class="saved-config-info">${enabledCount} features • Saved: ${config.savedAtDisplay || 'Unknown'}</div>
+                        </div>
+                        <div class="config-actions">
+                            <button class="config-btn" onclick="loadConfiguration('${name}')">Load</button>
+                            <button class="config-btn delete" onclick="deleteConfiguration('${name}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
