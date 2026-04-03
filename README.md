@@ -2,4 +2,4 @@
 Assisting Power BI Developers to create custom Date Tables in Power BI
 
 View file 
-https://github.com/powerbiliteracy/power-bi-date-table/blob/main/powerbi-calendar-generator%20(1).html
+[https://github.com/powerbiliteracy/power-bi-date-table/blob/main/powerbi-calendar-generator%20(1).html](https://htmlpreview.github.io/?https://github.com/powerbiliteracy/power-bi-date-table/blob/main/powerbi-calendar-generator%20(1).html)
